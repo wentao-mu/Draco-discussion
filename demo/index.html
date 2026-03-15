@@ -4,13 +4,220 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Draco on the web</title>
+    <title>Draco Studio</title>
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-    <h1 id="title">Draco on the web</h1>
-    <p>
-        Check the JavaScript console for details.
-    </p>
+    <div class="page-shell">
+        <header class="masthead">
+            <div class="masthead-copy">
+                <p class="eyebrow">Local Draco Editor</p>
+                <h1>Draco Studio</h1>
+                <p class="masthead-text">
+                    A browser-only Draco workspace with the interaction model of the original editor and a cleaner Apple-style shell.
+                </p>
+                <div class="app-mode-shell">
+                    <p class="masthead-card-label">Workspace</p>
+                    <div class="segment-control app-mode-control" id="app-mode">
+                        <button class="segment-button is-active" data-app-mode="studio" id="studio-mode-button" type="button">studio</button>
+                        <button class="segment-button" data-app-mode="discussion" id="discussion-mode-button" type="button">discussion</button>
+                    </div>
+                </div>
+            </div>
+            <div class="masthead-card">
+                <p class="masthead-card-label">Environment</p>
+                <p class="masthead-card-value">WASM solver</p>
+                <p class="masthead-card-meta">Dataset: cars.json · Output: single, grid, or a Draco paper discussion board</p>
+            </div>
+        </header>
+
+        <main class="workspace" id="studio-workspace">
+            <section class="editor-panel">
+                <div class="panel-topline">
+                    <div>
+                        <p class="eyebrow">Editor</p>
+                        <h2>ASP Query</h2>
+                    </div>
+                    <p class="meta-note" id="dataset-meta">cars.json · loading…</p>
+                </div>
+
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <button id="examples-button" class="toolbar-button" type="button">examples</button>
+                        <button id="options-button" class="toolbar-button" type="button">options</button>
+                        <button id="run-button" class="toolbar-button toolbar-button-primary" type="button">run</button>
+                    </div>
+                    <p class="status-pill" id="status" data-tone="info">Loading solver…</p>
+
+                    <div class="popover hidden" id="examples-menu">
+                        <button class="menu-item" data-example="scatter" type="button">scatter</button>
+                        <button class="menu-item" data-example="histogram" type="button">histogram</button>
+                        <button class="menu-item" data-example="strip" type="button">strip</button>
+                    </div>
+
+                    <div class="popover popover-options hidden" id="options-menu">
+                        <label class="option-field" for="model-count">
+                            <span>models</span>
+                            <input id="model-count" min="1" max="12" step="1" type="number" value="7">
+                        </label>
+                    </div>
+                </div>
+
+                <p class="example-caption" id="example-caption">Scatter example with two quantitative encodings.</p>
+
+                <div class="editor-shell">
+                    <div class="line-numbers" id="line-numbers" aria-hidden="true"></div>
+                    <textarea id="query-editor" spellcheck="false"></textarea>
+                </div>
+
+                <div class="editor-footer">
+                    <div class="field-cluster" id="field-cluster"></div>
+                    <p class="shortcut-note">Run with <code>Cmd/Ctrl + Enter</code>.</p>
+                </div>
+            </section>
+
+            <section class="result-panel">
+                <div class="panel-topline panel-topline-results">
+                    <div>
+                        <p class="eyebrow">Results</p>
+                        <h2>Recommendations</h2>
+                    </div>
+                    <div class="mode-toolbar">
+                        <div class="segment-control" id="view-mode">
+                            <button class="segment-button is-active" data-mode="single" id="single-button" type="button">single</button>
+                            <button class="segment-button" data-mode="grid" id="grid-button" type="button">grid</button>
+                        </div>
+                        <p class="mode-readout" id="mode-readout">viewing single</p>
+                    </div>
+                </div>
+
+                <div class="preview-frame">
+                    <div class="single-stage" id="single-stage">
+                        <div class="empty-state">Waiting for Draco to return a result.</div>
+                    </div>
+                    <div class="grid-stage hidden" id="grid-stage"></div>
+                </div>
+
+                <div class="cost-rail" id="cost-rail"></div>
+
+                <div class="json-panel">
+                    <div class="json-header">
+                        <h3>Selected Result JSON</h3>
+                        <p class="json-meta" id="selection-meta">No result selected.</p>
+                    </div>
+                    <div class="json-tree" id="json-tree"></div>
+                </div>
+            </section>
+        </main>
+
+        <section class="discussion-workspace hidden" id="discussion-workspace">
+            <section class="discussion-hero">
+                <div>
+                    <p class="eyebrow">Seminar Mode</p>
+                    <h2>Draco Paper Discussion Board</h2>
+                </div>
+            </section>
+
+            <div class="discussion-layout">
+                <section class="discussion-panel discussion-runbook">
+                    <div class="panel-topline">
+                        <div>
+                            <p class="eyebrow">Run Of Show</p>
+                            <h2>Discussion Flow</h2>
+                        </div>
+                        <p class="meta-note" id="discussion-progress">Stage 1 of 6</p>
+                    </div>
+                    <div class="discussion-stage-list" id="discussion-stage-list"></div>
+                    <div class="discussion-nav">
+                        <button class="toolbar-button" id="discussion-prev" type="button">back</button>
+                        <button class="toolbar-button toolbar-button-primary" id="discussion-next" type="button">next stage</button>
+                    </div>
+                </section>
+
+                <section class="discussion-panel discussion-teach">
+                    <div class="panel-topline">
+                        <div>
+                            <p class="eyebrow">Current Stage</p>
+                            <h2 id="discussion-stage-title">What Does Draco Actually Do?</h2>
+                        </div>
+                    </div>
+
+                    <div class="discussion-block discussion-question-block">
+                        <p class="discussion-step-label">Step 1</p>
+                        <h3 id="discussion-question">Which claim is the real center of the paper?</h3>
+                        <div class="discussion-choice-list" id="discussion-choice-list"></div>
+                        <p class="discussion-audience-status hidden" id="discussion-audience-status">Connecting to the live poll…</p>
+                        <div class="discussion-vote-shell" id="discussion-vote-shell">
+                            <div class="discussion-vote-head">
+                                <div>
+                                    <p class="discussion-step-label">Live Poll</p>
+                                    <h3>Join The Vote</h3>
+                                </div>
+                            </div>
+                            <div class="discussion-vote-join">
+                                <div class="discussion-vote-qr-frame">
+                                    <canvas id="discussion-vote-qr" aria-label="Scan to join live vote"></canvas>
+                                </div>
+                                <div class="discussion-vote-join-copy">
+                                    <p class="discussion-step-label">Scan To Vote</p>
+                                    <p class="discussion-vote-meta" id="discussion-vote-meta">Starting local vote channel…</p>
+                                    <a class="discussion-vote-link" href="#" id="discussion-vote-link" rel="noreferrer" target="_blank">Preparing join link…</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="discussion-answer-actions">
+                            <button class="toolbar-button toolbar-button-primary" id="discussion-reveal-answer" type="button">reveal answer</button>
+                            <button class="toolbar-button" id="discussion-reset-answer" type="button">clear choice</button>
+                        </div>
+                    </div>
+
+                    <div class="discussion-block hidden" id="discussion-answer-block">
+                        <p class="discussion-step-label">Step 2</p>
+                        <p class="discussion-answer-status" id="discussion-answer-status">Correct answer</p>
+                        <h3 id="discussion-answer-title">Draco turns incomplete specs into weighted constraint search.</h3>
+                        <p class="discussion-role-copy" id="discussion-answer-body"></p>
+                    </div>
+
+                    <div class="discussion-block discussion-demo-block">
+                        <p class="discussion-step-label">Step 3</p>
+                        <h3 id="discussion-demo-title">Demo Explanation</h3>
+
+                        <div class="live-demo-code-grid">
+                            <label class="demo-field" for="discussion-demo-base">
+                                <span>Base Program</span>
+                                <textarea class="discussion-note discussion-note-code" id="discussion-demo-base" readonly></textarea>
+                            </label>
+                            <label class="demo-field" for="discussion-demo-insert">
+                                <span>Answer Demo Insert</span>
+                                <textarea class="discussion-note discussion-note-code" id="discussion-demo-insert" placeholder="Add or edit the answer demo here."></textarea>
+                            </label>
+                        </div>
+
+                        <div class="live-demo-actions">
+                            <button class="toolbar-button" id="discussion-load-demo" type="button">load demo</button>
+                            <button class="toolbar-button toolbar-button-primary" id="discussion-run-demo" type="button">run answer demo</button>
+                            <button class="toolbar-button" id="discussion-reset-demo" type="button">reset demo insert</button>
+                        </div>
+                    </div>
+
+                    <div class="discussion-block discussion-vote-result-block">
+                        <p class="discussion-step-label">Step 4</p>
+                        <div class="discussion-vote-head">
+                            <div>
+                                <p class="discussion-step-label">Vote Result</p>
+                                <h3>Class Vote Result</h3>
+                            </div>
+                            <p class="discussion-vote-total" id="discussion-vote-total">0 votes</p>
+                        </div>
+                        <div class="discussion-vote-list" id="discussion-vote-list"></div>
+                        <div class="discussion-vote-actions">
+                            <button class="toolbar-button" id="discussion-reset-votes" type="button">reset votes</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
     <script src="main.ts"></script>
 </body>
 </html>

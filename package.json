@@ -13,13 +13,14 @@
     "format": "tslint -p . --fix && prettier --write '{src,test}/**/*.ts'",
     "lint": "tslint -p . && prettier --list-different '{src,test}/**/*.ts'",
     "watch": "npm run build && concurrently --kill-others -n Typescript,Rollup 'tsc -w' 'rollup -c -w'",
-    "start": "parcel demo/index.html"
+    "start": "concurrently --kill-others -n Web,Vote \"parcel demo/index.html --host 0.0.0.0\" \"node demo/vote-server.js\""
   },
   "author": "Dominik Moritz",
   "license": "BSD-3-Clause",
   "dependencies": {
     "@types/json-stable-stringify": "^1.0.32",
     "draco-core": "^0.0.6",
+    "qrcode": "^1.5.4",
     "vega": "^5.4.0",
     "vega-lite": "^3.4.0",
     "vega-typings": "^0.7.2",
