@@ -1,52 +1,66 @@
-# Draco-Vis
+# Draco Discussion
 
-[![npm version](https://img.shields.io/npm/v/draco-vis.svg)](https://www.npmjs.com/package/draco-vis)
-[![Build Status](https://travis-ci.com/uwdata/draco-vis.svg?branch=master)](https://travis-ci.com/uwdata/draco-vis)
+This project is a discussion-oriented Draco demo built on top of `draco-vis`.
 
-A module for Draco on the web, written in Typescript. Learn more about Draco at https://uwdata.github.io/draco/. 
+It turns the 2018 Draco paper into a live classroom interface:
 
-Note that we use [Emscripten](https://github.com/kripken/emscripten) to compile the Clingo constraint solver to WebAssembly so it runs inside your browser.
+- `studio` mode for running Draco examples
+- `discussion` mode with staged questions and answer demos
+- QR-code audience voting for live class participation
+- local vote syncing between the host screen and phone audience page
 
-## Installation
+## What It Is
 
-Install with `yarn add draco-vis`. See it in action on Observable at https://beta.observablehq.com/@domoritz/hello-draco.
+This is not just the original `draco-vis` library demo anymore. It has been adapted into a small teaching tool for presenting the Draco paper in class.
 
-## API
+The discussion flow is designed around:
 
-Draco-Vis exports the [Draco-Core API](https://github.com/uwdata/draco/blob/master/README.md#draco-core-api-typescript--javascript). In addition, it exposes the `Draco` object.
+- multiple discussion stages
+- answer reveal with a matching Draco demo
+- live audience voting from mobile devices
 
-*new* **Draco** *(updateStatus?: (text: string) => void, url?: string)*
+## Run Locally
 
->Constructs a `Draco` object. `updateStatus` is a callback used to log module status updates, defaulting to `console.log`. `url` may point to the base path of the hosting server, where '/clingo.js' from the package `wasmclingo` should rest, defaulting to the [unpkg url of `wasmclingo`](https://unpkg.com/wasm-clingo@0.2.2) (you may want to specify your own server if speed is of priority).
+Install dependencies:
 
-_draco._**init** *(): Promise*
+```bash
+yarn
+```
 
->Initializes Draco's solver, returning a `Promise` that will resolve once initialization completes.
+Start the app:
 
-_draco._**solve** *(program: string, options?: Option): SolutionSet*
+```bash
+yarn start
+```
 
->Solves the given Draco ASP program. Returns a `SolutionSet` if satisfiable.
+This starts:
 
-_draco._**prepareData** *(data: any[])*
+- the web app on `http://localhost:1234`
+- the local vote server on port `8787`
 
->Ingests the given data (a list of dictionaries), automatically parsing it for fields and datatypes, as well as various statistics.
+## How To Use
 
-_draco._**getSchema** *(): Schema*
+1. Open `http://localhost:1234`
+2. Use `studio` to test Draco examples
+3. Use `discussion` to present the paper
+4. Let students scan the QR code to join the live poll
+5. Reveal the answer and run the linked demo for each stage
 
->Returns the data `Schema` of this (will be `null` if `prepareData` has not yet been called).
+## Main Files
 
-_draco._**updateAsp** *(aspSet: {\[s: string\]: string})*
+- `demo/index.html`: app structure
+- `demo/main.ts`: discussion flow, voting logic, Draco demo behavior
+- `demo/styles.css`: UI styling
+- `demo/vote-server.js`: local audience voting server
 
->Updates the constraints / programs of this.
+## Build
 
-_draco._**getConstraintSet** *(): ConstraintSet*
+```bash
+yarn build
+```
 
->Returns the `ConstraintSet` backing this.
+## Notes
 
-## Run locally
-
-Run `yarn` to install dependencies. Then run `yarn start`.
-
-Run `yarn test` to test the module.
-
-Run `yarn format` to format the code.
+- Audience voting is designed for devices on the same local network.
+- The project keeps the Draco solver in the browser and adds a lightweight local vote service for classroom use.
+- The content is currently tailored to the Draco paper discussion workflow.
