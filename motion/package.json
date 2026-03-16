@@ -1,0 +1,19 @@
+{
+  "name": "draco-motion",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:video": "remotion render src/index.ts DracoCoreVideo ../demo/media/draco-operation-demo.mp4 --codec=h264 --crf=18 --overwrite",
+    "render:poster": "remotion still src/index.ts DracoCoreVideo ../demo/media/draco-operation-demo-poster.png --frame=629 --overwrite"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.435",
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.2.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.435",
+    "typescript": "^5.9.3"
+  }
+}

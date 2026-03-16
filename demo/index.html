@@ -142,8 +142,8 @@
                         </div>
                     </div>
 
-                    <div class="discussion-block discussion-question-block">
-                        <p class="discussion-step-label">Step 1</p>
+                    <div class="discussion-block discussion-question-block" id="discussion-question-block">
+                        <p class="discussion-step-label" id="discussion-question-step-label">Step 1</p>
                         <h3 id="discussion-question">Which claim is the real center of the paper?</h3>
                         <div class="discussion-choice-list" id="discussion-choice-list"></div>
                         <p class="discussion-audience-status hidden" id="discussion-audience-status">Connecting to the live poll…</p>
@@ -165,7 +165,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="discussion-answer-actions">
+                        <div class="discussion-answer-actions" id="discussion-answer-actions">
                             <button class="toolbar-button toolbar-button-primary" id="discussion-reveal-answer" type="button">reveal answer</button>
                             <button class="toolbar-button" id="discussion-reset-answer" type="button">clear choice</button>
                         </div>
@@ -178,7 +178,7 @@
                         <p class="discussion-role-copy" id="discussion-answer-body"></p>
                     </div>
 
-                    <div class="discussion-block discussion-demo-block">
+                    <div class="discussion-block discussion-demo-block" id="discussion-demo-block">
                         <p class="discussion-step-label">Step 3</p>
                         <h3 id="discussion-demo-title">Demo Explanation</h3>
 
@@ -200,7 +200,7 @@
                         </div>
                     </div>
 
-                    <div class="discussion-block discussion-vote-result-block">
+                    <div class="discussion-block discussion-vote-result-block" id="discussion-vote-result-block">
                         <p class="discussion-step-label">Step 4</p>
                         <div class="discussion-vote-head">
                             <div>
@@ -213,6 +213,28 @@
                         <div class="discussion-vote-actions">
                             <button class="toolbar-button" id="discussion-reset-votes" type="button">reset votes</button>
                         </div>
+                    </div>
+
+                    <div class="discussion-block discussion-closing-block hidden" id="discussion-closing-block">
+                        <p class="discussion-step-label">Discussion End</p>
+                        <h3 id="discussion-closing-title">Any final questions?</h3>
+                        <p class="discussion-role-copy" id="discussion-closing-body">
+                            If there are no more questions, use the Draco flow video below to recap the paper from input to output.
+                        </p>
+                    </div>
+
+                    <div class="discussion-block discussion-flow-block hidden" id="discussion-flow-block">
+                        <p class="discussion-step-label">Operation Demo</p>
+                        <video
+                            class="discussion-flow-video"
+                            id="discussion-flow-video"
+                            autoplay
+                            controls
+                            loop
+                            muted
+                            playsinline
+                            preload="metadata"
+                        ></video>
                     </div>
                 </section>
             </div>

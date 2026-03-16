@@ -3,4 +3,7 @@
 build
 dist
 node_modules
+.DS_Store
+__pycache__/
+*.pyc
 yarn-error.log

@@ -12,6 +12,7 @@
     "build": "rm -rf build && tsc && rollup -c",
     "format": "tslint -p . --fix && prettier --write '{src,test}/**/*.ts'",
     "lint": "tslint -p . && prettier --list-different '{src,test}/**/*.ts'",
+    "render:discussion-media": "python3 scripts/generate_operation_demo.py",
     "watch": "npm run build && concurrently --kill-others -n Typescript,Rollup 'tsc -w' 'rollup -c -w'",
     "start": "concurrently --kill-others -n Web,Vote \"parcel demo/index.html --host 0.0.0.0\" \"node demo/vote-server.js\""
   },

@@ -4,6 +4,8 @@ import Draco from '../src';
 
 const RAW_CARS = require('./data/cars.json');
 const QRCode = require('qrcode');
+const FLOW_VIDEO_MP4 = require('./media/draco-operation-demo.mp4');
+const FLOW_VIDEO_POSTER = require('./media/draco-operation-demo-poster.png');
 const SOLVER_URL = 'https://unpkg.com/wasm-clingo@0.3.0';
 const VOTE_SOCKET_PORT = 8787;
 const VOTE_POLL_INTERVAL = 1200;
@@ -105,6 +107,7 @@ const EXAMPLES: { [name: string]: { label: string; description: string; program:
 };
 
 type DiscussionStage = {
+  kind?: 'quiz' | 'closing';
   title: string;
   question: string;
   choices: string[];
@@ -115,6 +118,8 @@ type DiscussionStage = {
   demoBase: string;
   demoInsert: string;
   demoMode: 'single' | 'grid';
+  closingTitle?: string;
+  closingBody?: string;
 };
 
 const DISCUSSION_STAGES: DiscussionStage[] = [
@@ -125,6 +130,7 @@ const DISCUSSION_STAGES: DiscussionStage[] = [
       'It directly learns the best chart template from raw datasets.',
       'It turns an incomplete visualization specification into a weighted constraint search problem.',
       'It mostly acts as a Vega-Lite renderer with a faster backend.',
+      'It works mainly as a crowdsourced chart-rating interface for visualization examples.',
     ],
     correctIndex: 1,
     answerTitle: 'Correct answer: Draco reframes recommendation as weighted constraint search.',
@@ -136,18 +142,37 @@ const DISCUSSION_STAGES: DiscussionStage[] = [
     demoMode: 'single',
   },
   {
+    title: 'Why Separate Hard And Soft Constraints?',
+    question: 'Why does the paper separate hard constraints from soft constraints?',
+    choices: [
+      'Because ASP can only optimize soft constraints after a rendering pass.',
+      'Because hard constraints define validity, while soft constraints rank the valid candidates that remain.',
+      'Because hard constraints are learned from user studies, while soft constraints are handwritten.',
+      'Because hard constraints only affect speed, while soft constraints affect correctness.',
+    ],
+    correctIndex: 1,
+    answerTitle: 'Correct answer: Draco separates validity from preference.',
+    answerBody:
+      'Hard constraints define whether a visualization is admissible at all. Soft constraints only apply after that, expressing trade-offs among legal candidates. That separation is what lets Draco both reject bad designs and still rank multiple valid ones.',
+    demoTitle: 'Demo 2 · Validity Versus Preference',
+    demoBase: EXAMPLES.scatter.program,
+    demoInsert: '',
+    demoMode: 'grid',
+  },
+  {
     title: 'What Changes When You Add One Constraint?',
     question: 'If we add `:- not bin(e0,_).`, what is the best way to interpret the result?',
     choices: [
       'It only reorders the same candidate charts without changing the design space.',
       'It changes the feasible design space and pushes Draco toward a different family of solutions.',
       'It changes the dataset statistics, so the solver learns a new preference model.',
+      'It only changes chart styling while leaving the logical specification untouched.',
     ],
     correctIndex: 1,
     answerTitle: 'Correct answer: one extra rule changes the admissible solution space.',
     answerBody:
       'This is the extensibility argument in miniature. You are not hand-editing a scoring heuristic buried in imperative code; you are adding a new declarative condition that changes which completions survive.',
-    demoTitle: 'Demo 2 · One-Line Constraint Shift',
+    demoTitle: 'Demo 3 · One-Line Constraint Shift',
     demoBase: EXAMPLES.scatter.program,
     demoInsert: ':- not bin(e0,_).',
     demoMode: 'grid',
@@ -159,12 +184,13 @@ const DISCUSSION_STAGES: DiscussionStage[] = [
       'They decide which visualization constraints exist in the language.',
       'They decide how expensive different soft-constraint violations are relative to each other.',
       'They decide the Vega-Lite grammar and mark syntax.',
+      'They decide which fields are present in the dataset before search begins.',
     ],
     correctIndex: 1,
     answerTitle: 'Correct answer: learned weights adjust the trade-offs among soft constraints.',
     answerBody:
       'The weights do not invent new rules or change the grammar. They change ranking by saying which soft violations cost more, which is why multiple legal charts can still appear in different orders.',
-    demoTitle: 'Demo 3 · Cost And Ranking',
+    demoTitle: 'Demo 4 · Cost And Ranking',
     demoBase: EXAMPLES.scatter.program,
     demoInsert: '',
     demoMode: 'grid',
@@ -176,12 +202,13 @@ const DISCUSSION_STAGES: DiscussionStage[] = [
       'Because the solver is too weak to commit to a single result.',
       'Because optimal only means optimal under the encoded preferences, so nearby alternatives still matter.',
       'Because users always prefer more visual variety, regardless of quality.',
+      'Because the paper’s interface would look incomplete with only one chart on screen.',
     ],
     correctIndex: 1,
     answerTitle: 'Correct answer: top-k results expose the limits of the encoded preference model.',
     answerBody:
       'The paper is careful here: optimal does not mean universally correct. Showing several candidates helps the class see both the strength and the boundary of the current model.',
-    demoTitle: 'Demo 4 · Top-K Instead Of One True Chart',
+    demoTitle: 'Demo 5 · Top-K Instead Of One True Chart',
     demoBase: EXAMPLES.scatter.program,
     demoInsert: '',
     demoMode: 'grid',
@@ -193,15 +220,34 @@ const DISCUSSION_STAGES: DiscussionStage[] = [
       'It already behaves like a smart spell checker that automatically repairs the chart for you.',
       'It behaves like a constraint solver that can fail cleanly, but still needs an explanation layer on top.',
       'It infers the user’s true intent and silently rewrites the query.',
+      'It falls back to the nearest nominal encoding and hides the conflict from the user.',
     ],
     correctIndex: 1,
     answerTitle: 'Correct answer: Draco can surface failure, but explanation remains a separate problem.',
     answerBody:
       'The paper explicitly mentions spell checking and auto-correction as future directions. This means the current contribution is stronger on synthesis and validation than on human-readable explanation.',
-    demoTitle: 'Demo 5 · Break The Spec On Purpose',
+    demoTitle: 'Demo 6 · Break The Spec On Purpose',
     demoBase: createProgram(['origin'], ['encoding(e0).', ':- not field(e0,origin).']),
     demoInsert: ':- not type(e0,quantitative).',
     demoMode: 'single',
+  },
+  {
+    title: 'What Would It Take To Extend Draco?',
+    question: 'If you wanted Draco to work well in a different visualization domain, what is the main thing you would need to add?',
+    choices: [
+      'A different Vega renderer, because the knowledge model is already universal.',
+      'A larger benchmark dataset, because more data alone removes the need for new rules.',
+      'New explicit domain knowledge encoded as constraints, plus updated preference weights if needed.',
+      'Only softer constraints, because hard constraints do not transfer across domains.',
+    ],
+    correctIndex: 2,
+    answerTitle: 'Correct answer: extending Draco means encoding new domain knowledge, not just swapping the renderer.',
+    answerBody:
+      'The reusable idea is the formal framework. What still takes work is translating a new domain’s design knowledge into explicit rules and, when necessary, relearning preference weights for that domain.',
+    demoTitle: 'Demo 7 · Extending The Knowledge Base',
+    demoBase: EXAMPLES.scatter.program,
+    demoInsert: ':- not bin(e0,_).',
+    demoMode: 'grid',
   },
   {
     title: 'What Does The CompassQL Comparison Actually Prove?',
@@ -210,15 +256,31 @@ const DISCUSSION_STAGES: DiscussionStage[] = [
       'Draco proves that its charts are always more accurate for end users.',
       'Draco shows this class of preference model can be expressed and searched more transparently and flexibly.',
       'Draco proves imperative recommendation systems should no longer be used.',
+      'Draco proves ASP is universally faster than every other recommendation approach on every task.',
     ],
     correctIndex: 1,
     answerTitle: 'Correct answer: the comparison is strongest on representation and extensibility, not universal user superiority.',
     answerBody:
       'The convincing part of the paper is that visualization knowledge is made explicit, testable, and easy to extend. That is a stronger and cleaner claim than saying Draco has solved the final end-user evaluation question.',
-    demoTitle: 'Demo 6 · Declarative Editability',
+    demoTitle: 'Demo 8 · Declarative Editability',
     demoBase: EXAMPLES.scatter.program,
     demoInsert: ':- not bin(e0,_).',
     demoMode: 'grid',
+  },
+  {
+    kind: 'closing',
+    title: 'Discussion End',
+    question: 'Any final questions?',
+    choices: [],
+    correctIndex: -1,
+    answerTitle: '',
+    answerBody: '',
+    demoTitle: '',
+    demoBase: EXAMPLES.scatter.program,
+    demoInsert: '',
+    demoMode: 'single',
+    closingTitle: 'Any final questions?',
+    closingBody: 'If there are no more questions, use the Draco flow video below to recap the paper from input to output.',
   },
 ];
 
@@ -253,6 +315,8 @@ const discussionPrev = document.getElementById('discussion-prev') as HTMLButtonE
 const discussionNext = document.getElementById('discussion-next') as HTMLButtonElement;
 const discussionProgress = document.getElementById('discussion-progress') as HTMLElement;
 const discussionStageTitle = document.getElementById('discussion-stage-title') as HTMLElement;
+const discussionQuestionStepLabel = document.getElementById('discussion-question-step-label') as HTMLElement;
+const discussionQuestionBlock = document.getElementById('discussion-question-block') as HTMLElement;
 const discussionQuestion = document.getElementById('discussion-question') as HTMLElement;
 const discussionChoiceList = document.getElementById('discussion-choice-list') as HTMLElement;
 const discussionAudienceStatus = document.getElementById('discussion-audience-status') as HTMLElement;
@@ -263,18 +327,26 @@ const discussionVoteMeta = document.getElementById('discussion-vote-meta') as HT
 const discussionVoteLink = document.getElementById('discussion-vote-link') as HTMLAnchorElement;
 const discussionVoteList = document.getElementById('discussion-vote-list') as HTMLElement;
 const discussionResetVotes = document.getElementById('discussion-reset-votes') as HTMLButtonElement;
+const discussionAnswerActions = document.getElementById('discussion-answer-actions') as HTMLElement;
 const discussionRevealAnswer = document.getElementById('discussion-reveal-answer') as HTMLButtonElement;
 const discussionResetAnswer = document.getElementById('discussion-reset-answer') as HTMLButtonElement;
 const discussionAnswerBlock = document.getElementById('discussion-answer-block') as HTMLElement;
 const discussionAnswerStatus = document.getElementById('discussion-answer-status') as HTMLElement;
 const discussionAnswerTitle = document.getElementById('discussion-answer-title') as HTMLElement;
 const discussionAnswerBody = document.getElementById('discussion-answer-body') as HTMLElement;
+const discussionDemoBlock = document.getElementById('discussion-demo-block') as HTMLElement;
 const discussionDemoTitle = document.getElementById('discussion-demo-title') as HTMLElement;
 const discussionDemoBase = document.getElementById('discussion-demo-base') as HTMLTextAreaElement;
 const discussionDemoInsert = document.getElementById('discussion-demo-insert') as HTMLTextAreaElement;
 const discussionLoadDemo = document.getElementById('discussion-load-demo') as HTMLButtonElement;
 const discussionRunDemo = document.getElementById('discussion-run-demo') as HTMLButtonElement;
 const discussionResetDemo = document.getElementById('discussion-reset-demo') as HTMLButtonElement;
+const discussionVoteResultBlock = document.getElementById('discussion-vote-result-block') as HTMLElement;
+const discussionClosingBlock = document.getElementById('discussion-closing-block') as HTMLElement;
+const discussionClosingTitle = document.getElementById('discussion-closing-title') as HTMLElement;
+const discussionClosingBody = document.getElementById('discussion-closing-body') as HTMLElement;
+const discussionFlowBlock = document.getElementById('discussion-flow-block') as HTMLElement;
+const discussionFlowVideo = document.getElementById('discussion-flow-video') as HTMLVideoElement;
 const searchParams = new URLSearchParams(window.location.search);
 const currentAudienceMode = searchParams.get('audience') === '1';
 const voteSessionId = searchParams.get('session') || createSessionId();
@@ -296,6 +368,7 @@ let voteTransportReady = false;
 let voteLocalIp = '';
 let voteAudienceCount = 0;
 let votePollTimer = 0;
+let closingStageVisible = false;
 const discussionSelectedChoices = DISCUSSION_STAGES.map(function initChoice() {
   return -1;
 });
@@ -498,6 +571,24 @@ function currentDiscussionStage() {
   return DISCUSSION_STAGES[currentDiscussionIndex];
 }
 
+function isClosingDiscussionStage(stage: DiscussionStage = currentDiscussionStage()) {
+  return stage.kind === 'closing';
+}
+
+function resetDiscussionFlowVideo(autoPlay: boolean = false) {
+  discussionFlowVideo.currentTime = 0;
+
+  if (autoPlay) {
+    discussionFlowVideo.play().catch(function ignoreVideoPlayError() {
+      return;
+    });
+  }
+}
+
+function pauseDiscussionFlowVideo() {
+  discussionFlowVideo.pause();
+}
+
 function composeDiscussionDemoProgram() {
   const extra = discussionDemoInsert.value.trim();
   const base = currentDiscussionStage().demoBase;
@@ -515,6 +606,10 @@ function renderDiscussionChoices() {
   const revealed = discussionAnswerRevealed[currentDiscussionIndex];
 
   discussionChoiceList.innerHTML = '';
+
+  if (!stage.choices.length) {
+    return;
+  }
 
   stage.choices.forEach(function appendChoice(choice, index) {
     const button = document.createElement('button');
@@ -707,10 +802,11 @@ function renderVoteJoin() {
   const joinUrl = resolveVoteJoinUrl();
   const totalConnected = voteAudienceCount === 1 ? '1 phone connected' : `${voteAudienceCount} phones connected`;
   const qrContext = discussionVoteQr.getContext('2d');
+  const hideJoin = currentAudienceMode || isClosingDiscussionStage();
 
-  discussionVoteShell.classList.toggle('hidden', currentAudienceMode);
+  discussionVoteShell.classList.toggle('hidden', hideJoin);
 
-  if (currentAudienceMode) {
+  if (hideJoin) {
     return;
   }
 
@@ -906,6 +1002,10 @@ function renderDiscussionVotes() {
   discussionVoteList.innerHTML = '';
   discussionVoteTotal.textContent = totalVotes === 1 ? '1 vote' : `${totalVotes} votes`;
 
+  if (!stage.choices.length) {
+    return;
+  }
+
   stage.choices.forEach(function appendVoteRow(choice, index) {
     const row = document.createElement('div');
     const info = document.createElement('div');
@@ -954,6 +1054,11 @@ function renderDiscussionAnswer() {
   const selected = discussionSelectedChoices[currentDiscussionIndex];
   const revealed = discussionAnswerRevealed[currentDiscussionIndex];
 
+  if (isClosingDiscussionStage(stage)) {
+    discussionAnswerBlock.classList.add('hidden');
+    return;
+  }
+
   discussionAnswerBlock.classList.toggle('hidden', currentAudienceMode || !revealed);
   if (!revealed) {
     return;
@@ -977,6 +1082,34 @@ function renderDiscussionDemo() {
   discussionDemoTitle.textContent = stage.demoTitle;
   discussionDemoBase.value = stage.demoBase;
   discussionDemoInsert.value = discussionDemoInserts[currentDiscussionIndex];
+}
+
+function renderDiscussionClosingState() {
+  const stage = currentDiscussionStage();
+  const closing = isClosingDiscussionStage(stage);
+
+  discussionQuestionStepLabel.textContent = closing ? 'Discussion End' : 'Step 1';
+  discussionQuestionBlock.classList.toggle('is-closing', closing);
+  discussionChoiceList.classList.toggle('hidden', closing);
+  discussionAnswerActions.classList.toggle('hidden', closing);
+  discussionDemoBlock.classList.toggle('hidden', closing);
+  discussionVoteResultBlock.classList.toggle('hidden', closing);
+  discussionClosingBlock.classList.toggle('hidden', !closing);
+  discussionFlowBlock.classList.toggle('hidden', !closing || currentAudienceMode);
+  discussionAudienceStatus.classList.toggle('hidden', !currentAudienceMode || closing);
+
+  if (closing) {
+    discussionClosingTitle.textContent = stage.closingTitle || 'Any final questions?';
+    discussionClosingBody.textContent =
+      stage.closingBody || 'If there are no more questions, use the Draco flow video below to recap the paper from input to output.';
+    if (!closingStageVisible) {
+      resetDiscussionFlowVideo(!currentAudienceMode);
+    }
+  } else if (closingStageVisible) {
+    pauseDiscussionFlowVideo();
+  }
+
+  closingStageVisible = closing;
 }
 
 function loadProgram(program: string, description: string) {
@@ -1010,9 +1143,10 @@ function renderDiscussionStage() {
   renderDiscussionTimeline();
   renderDiscussionChoices();
   renderDiscussionVotes();
-  renderVoteJoin();
   renderDiscussionAnswer();
   renderDiscussionDemo();
+  renderDiscussionClosingState();
+  renderVoteJoin();
 }
 
 function setDiscussionStage(nextIndex: number, fromRemote: boolean = false) {
@@ -1025,6 +1159,10 @@ function setDiscussionStage(nextIndex: number, fromRemote: boolean = false) {
 }
 
 function revealDiscussionAnswer() {
+  if (isClosingDiscussionStage()) {
+    return;
+  }
+
   discussionAnswerRevealed[currentDiscussionIndex] = true;
   renderDiscussionChoices();
   renderDiscussionVotes();
@@ -1032,6 +1170,10 @@ function revealDiscussionAnswer() {
 }
 
 function resetDiscussionAnswer() {
+  if (isClosingDiscussionStage()) {
+    return;
+  }
+
   discussionSelectedChoices[currentDiscussionIndex] = -1;
   discussionAnswerRevealed[currentDiscussionIndex] = false;
   renderDiscussionChoices();
@@ -1061,6 +1203,10 @@ function setAppMode(nextMode: string) {
     currentAppMode = nextMode === 'discussion' ? 'discussion' : 'studio';
   }
   renderAppMode();
+
+  if (currentAppMode !== 'discussion') {
+    pauseDiscussionFlowVideo();
+  }
 }
 
 function jsonValueClass(value: any) {
@@ -1528,6 +1674,8 @@ function initializeInteractions() {
 
 function initialize() {
   datasetMeta.textContent = `cars.json · ${CARS_DATA.length} rows · normalized browser copy`;
+  discussionFlowVideo.src = `${FLOW_VIDEO_MP4}?v=core-3`;
+  discussionFlowVideo.poster = `${FLOW_VIDEO_POSTER}?v=core-3`;
   renderFieldCluster();
   loadExample('scatter', false);
   showEmptyState('Loading the WebAssembly solver…');
